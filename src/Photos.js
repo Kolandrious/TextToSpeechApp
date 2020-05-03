@@ -10,7 +10,9 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import CameraRoll from '@react-native-community/cameraroll';
 
 export default ({ navigation }) => {
@@ -20,6 +22,24 @@ export default ({ navigation }) => {
   const [isFetchingMore, setIsFetchingMore] = React.useState(false);
   const [isFetching, setIsFetching] = React.useState(true);
   const screenWidth = Dimensions.get('screen').width;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      let presses = 0;
+      const onBackPress = () => {
+        if (presses === 1) {
+          return false;
+        } else {
+          presses += 1;
+          return true;
+        }
+      };
+
+      BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () =>
+        BackHandler.removeEventListener('hardwareBackPress', onBackPress);
+    }, []),
+  );
 
   const fetchInitialPhotos = React.useCallback(async () => {
     try {
@@ -67,21 +87,25 @@ export default ({ navigation }) => {
   };
 
   React.useEffect(() => {
-    const requestPermissions = async () => {
+    const requestPermissions = async number => {
       try {
         const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          number === 1
+            ? PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE
+            : PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-          setPermissions(true);
-          fetchInitialPhotos();
+          if (number === 2) {
+            setPermissions(true);
+            fetchInitialPhotos();
+          } else requestPermissions(2);
         } else setPermissions(false);
       } catch (e) {
         console.log('cant open android permissions dialog', e);
       }
     };
 
-    requestPermissions();
+    requestPermissions(1);
   }, [fetchInitialPhotos]);
 
   if (!permissions) {

@@ -32,7 +32,6 @@ export default ({ navigation, route }) => {
 
   const fetchVoice = React.useCallback(
     async (text, language, voiceStyle) => {
-      console.log('FETCH VOICE' + voiceStyle);
       navigation.setParams({
         title: 'Загружаецца',
       });
@@ -50,10 +49,8 @@ export default ({ navigation, route }) => {
           fileCache: true,
           path: RNFetchBlob.fs.dirs.CacheDir + '/voice.wav',
         }).fetch('GET', speechResponse.data.audio);
-        console.log(audioFile.path());
         playAudio(audioFile.path());
       } catch (err) {
-        console.log('Failed to fetch voice', err);
       } finally {
         navigation.setParams({
           title: 'Вынік',
@@ -107,7 +104,6 @@ export default ({ navigation, route }) => {
           setPlayer(Audio);
           Audio.play(success => {
             if (success) {
-              console.log('successfully finished playing');
               Audio.release();
               setPlayer(null);
               setVoice('');
@@ -124,7 +120,6 @@ export default ({ navigation, route }) => {
 
   const changeVoice = newVoice => {
     if (player) player.stop();
-    console.log('SET VOICE');
     setVoice(newVoice);
   };
 
@@ -144,11 +139,10 @@ export default ({ navigation, route }) => {
     'Boris Dictation': `Boris${languages[language]} (dictation mode)`,
     'Boris High': `Boris${languages[language]}High`,
   };
-  console.log({ currentVoice: voice });
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-        <Text>{route.params.text}</Text>
+        <Text style={styles.text}>{route.params.text}</Text>
         {Object.entries(names).map(([key, value]) => (
           <ChangeVoiceButton
             key={key}
@@ -179,6 +173,9 @@ const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     padding: 5,
+  },
+  text: {
+    fontSize: 18,
   },
   buttonContainer: {
     marginVertical: 5,
