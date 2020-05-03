@@ -60,3 +60,4 @@ buck-out/
 
 #secret
 /src/TextToSpeech-7667ce26287c.json
+.env
