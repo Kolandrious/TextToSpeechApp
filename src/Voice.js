@@ -9,7 +9,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import axios from 'axios';
-import RNFetchBlob from 'react-native-fetch-blob';
+import RNFetchBlob from 'rn-fetch-blob';
 import RNSound from 'react-native-sound';
 import { languages } from './constants';
 
