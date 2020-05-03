@@ -27,7 +27,10 @@ export default ({ route }) => {
 
   const renderGrantAcess = (
     <View>
-      <Text>You should allow camera usage ifyou want to scan taken photo</Text>
+      <Text>
+        Вы павінны дазволіць выкарыстанне камеры, калі вы хочаце агучваць
+        зробленыя фатаграфіі.
+      </Text>
       <Button title="Allow Camera access" onPress={onGrantAccess} />
     </View>
   );

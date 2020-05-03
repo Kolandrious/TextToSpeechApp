@@ -8,16 +8,18 @@ import {
   Image,
   FlatList,
   TouchableOpacity,
+  Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import CameraRoll from '@react-native-community/cameraroll';
 
-export default ({ route, navigation }) => {
+export default ({ navigation }) => {
   const [photos, setPhotos] = React.useState([]);
   const [cursor, setCursor] = React.useState({});
   const [permissions, setPermissions] = React.useState(false);
   const [isFetchingMore, setIsFetchingMore] = React.useState(false);
   const [isFetching, setIsFetching] = React.useState(true);
-  const [screenWidth, setScreenWidth] = React.useState(375);
+  const screenWidth = Dimensions.get('screen').width;
 
   const fetchInitialPhotos = React.useCallback(async () => {
     try {
@@ -43,7 +45,14 @@ export default ({ route, navigation }) => {
         assetType: 'Photos',
         after: `${newCursor}`,
       });
-      setPhotos(lastPhotos => [...lastPhotos, ...response.edges]);
+      setPhotos(lastPhotos => {
+        if (lastPhotos[lastPhotos.length - 1].blank) lastPhotos.pop();
+        response.edges.forEach(photo => lastPhotos.push(photo));
+        if (response.page_info.has_next_page) {
+          lastPhotos.push({ blank: true, node: { image: { uri: 'fake' } } });
+        }
+        return lastPhotos;
+      });
       setCursor(response.page_info);
     } catch (err) {
       console.log(err);
@@ -78,7 +87,7 @@ export default ({ route, navigation }) => {
   if (!permissions) {
     return (
       <View>
-        <Text>Please grant permisisons</Text>
+        <Text>Калі ласка, надайце дазволы</Text>
       </View>
     );
   }
@@ -88,6 +97,20 @@ export default ({ route, navigation }) => {
       navigation.navigate('PhotoDetails', { uri: photo.node.image.uri });
     };
     const eachItemDimensions = (screenWidth - 10) / 3 - 10;
+
+    if (photo.blank) {
+      return (
+        <View
+          style={[
+            styles.photoContainer,
+            styles.center,
+            { width: eachItemDimensions, height: eachItemDimensions },
+          ]}
+        >
+          <ActivityIndicator size={eachItemDimensions / 2} />
+        </View>
+      );
+    }
 
     return (
       <TouchableOpacity
@@ -103,13 +126,7 @@ export default ({ route, navigation }) => {
   };
 
   return (
-    <SafeAreaView
-      onLayout={({
-        nativeEvent: {
-          layout: { width },
-        },
-      }) => setScreenWidth(width)}
-    >
+    <SafeAreaView>
       {!!photos && !!photos.length && (
         <FlatList
           data={photos}
@@ -131,12 +148,17 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   photoContainer: {
-    // flex: 1,
     margin: 5,
+    elevation: 4,
+    borderRadius: 2,
+    // justifyContent: 'center',
+    // alignItems: 'center',
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   photo: {
     flex: 1,
-    // height: 100,
-    // width: 100,
   },
 });
